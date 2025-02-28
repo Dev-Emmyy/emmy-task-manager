@@ -1,0 +1,20 @@
+{
+  "name":  "TaskFlow | Modern Task Management",
+  "short_name": "TaskFlow",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#7f39fb",
+  "icons": [
+    {
+      "src": "/appLogo.png?v=3",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/appLogo.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
