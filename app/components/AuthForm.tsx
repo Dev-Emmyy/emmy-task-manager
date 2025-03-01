@@ -11,10 +11,13 @@ import {
   Fade,
   Grow,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
+  IconButton
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { styled } from "@mui/material/styles";
 
 const GlassCard = styled(Card)({
@@ -37,6 +40,7 @@ export default function AuthForm({ type }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -73,6 +77,9 @@ export default function AuthForm({ type }: AuthFormProps) {
       setLoading(false);
     }
   };
+
+  // Toggle password visibility
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   return (
     <Box
@@ -126,7 +133,7 @@ export default function AuthForm({ type }: AuthFormProps) {
               
               <TextField
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"} // Toggle password visibility
                 fullWidth
                 margin="normal"
                 value={password}
@@ -135,6 +142,18 @@ export default function AuthForm({ type }: AuthFormProps) {
                   startAdornment: (
                     <InputAdornment position="start">
                       <LockIcon sx={{ color: "#fff" }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        edge="end"
+                        sx={{ color: "#fff" }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
                     </InputAdornment>
                   ),
                 }}

@@ -1,36 +1,30 @@
+// components/TaskList.tsx
 "use client";
+import { useEffect, useState } from "react";
 
-import { List, ListItem, ListItemText, Typography } from "@mui/material";
+export default function TaskList() {
+  interface Task {
+    id: number;
+    title: string;
+    description: string;
+  }
 
-interface Task {
-  id: number;
-  title: string;
-  category: string;
-  progress: number;
-}
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-interface TaskListProps {
-  tasks: Task[];
-}
+  useEffect(() => {
+    fetch("/api/tasks")
+      .then((res) => res.json())
+      .then((data) => setTasks(data));
+  }, []);
 
-export default function TaskList({ tasks }: TaskListProps) {
   return (
-    <>
-      <Typography variant="h5" gutterBottom sx={{ fontFamily: "Poppins" }}>
-        Your Tasks
-      </Typography>
-      <List>
-        {tasks.map((task) => (
-          <ListItem key={task.id}>
-            <ListItemText
-              primary={task.title}
-              secondary={`Category: ${task.category} - ${task.progress}%`}
-              primaryTypographyProps={{ fontFamily: "Inter" }}
-              secondaryTypographyProps={{ fontFamily: "Space Grotesk" }}
-            />
-          </ListItem>
-        ))}
-      </List>
-    </>
+    <div>
+      {tasks.map((task) => (
+        <div key={task.id}>
+          <h3>{task.title}</h3>
+          <p>{task.description}</p>
+        </div>
+      ))}
+    </div>
   );
 }

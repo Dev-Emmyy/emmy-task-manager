@@ -1,11 +1,14 @@
 import React from 'react';
+import Layout from './components/Layout';
+import Box from '@mui/material/Box';
 
 const Page = () => {
   return (
-    <div>
-      <h1>Welcome to Emmy Task Manager</h1>
-      <p>This is your task management application.</p>
-    </div>
+    <Box>
+      <Layout>
+        {/* Add your children components here */}
+      </Layout>
+    </Box>
   );
 };
 

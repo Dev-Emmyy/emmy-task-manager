@@ -13,6 +13,7 @@ model User {
   password  String
   name      String?
   tasks     Task[]
+  comments  Comment[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -21,10 +22,23 @@ model Task {
   id          String   @id @default(uuid())
   title       String
   description String?
-  completed   Boolean  @default(false)
+  status      String 
   dueDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH
   userId      String
   user        User     @relation(fields: [userId], references: [id])
+  comments    Comment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

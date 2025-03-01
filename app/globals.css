@@ -1,14 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500&display=swap');
+
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-space-grotesk: 'Space Grotesk', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  font-family: var(--font-inter);
+  margin: 0;
+  padding: 0;
+  background-color: #1a1a1a;
+  color: #fff;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-poppins);
+  font-weight: 600;
+  margin: 0;
+}
+
+button {
+  font-family: var(--font-poppins);
+  font-weight: 500;
+}
+
+.subtitle {
+  font-family: var(--font-space-grotesk);
+  font-weight: 500;
+  color: #bbb;
+}
+
 
 html,
 body {
