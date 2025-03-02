@@ -1,30 +1,19 @@
-// components/TaskList.tsx
-"use client";
-import { useEffect, useState } from "react";
+import { useTasks } from "@/hooks/useTasks";
 
-export default function TaskList() {
-  interface Task {
-    id: number;
-    title: string;
-    description: string;
-  }
+const TasksList = () => {
+  const { data: tasks, isLoading } = useTasks();
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-
-  useEffect(() => {
-    fetch("/api/tasks")
-      .then((res) => res.json())
-      .then((data) => setTasks(data));
-  }, []);
+  if (isLoading) return <p>Loading tasks...</p>;
 
   return (
-    <div>
-      {tasks.map((task) => (
-        <div key={task.id}>
-          <h3>{task.title}</h3>
-          <p>{task.description}</p>
-        </div>
+    <ul>
+      {tasks?.map((task: { id: string; title: string; status: string }) => (
+        <li key={task.id}>
+          {task.title} - {task.status}
+        </li>
       ))}
-    </div>
+    </ul>
   );
-}
+};
+
+export default TasksList;
