@@ -1,11 +1,17 @@
 // app/dashboard/page.tsx
 "use client";
 import { useTasks } from "@/hooks/useTasks";
+import { useSession } from "next-auth/react";
 import TaskProgress from "./components/TaskProgress";
 import { Box, Typography, Grid, Card, CardContent, CircularProgress } from "@mui/material";
 
 export default function Dashboard() {
+  const { data: session } = useSession();
   const { data: tasks, isLoading, isError } = useTasks();
+
+  if (!session) {
+    return <Typography>Please log in to view the dashboard.</Typography>;
+  }
 
   if (isLoading) {
     return (
@@ -19,6 +25,7 @@ export default function Dashboard() {
     return <Typography>Error loading tasks.</Typography>;
   }
 
+  // Handle empty tasks
   if (!tasks || tasks.length === 0) {
     return (
       <Box sx={{ p: 3 }}>
@@ -31,10 +38,10 @@ export default function Dashboard() {
   }
 
   // Calculate task statistics
-  const totalTasks = tasks?.length || 0;
-  const todoTasks = tasks?.filter((task: { status: string }) => task.status === "todo").length || 0;
-  const inProgressTasks = tasks?.filter((task: { status: string }) => task.status === "in-progress").length || 0;
-  const doneTasks = tasks?.filter((task: { status: string }) => task.status === "done").length || 0;
+  const totalTasks = tasks.length;
+  const todoTasks = tasks.filter((task: { status: string }) => task.status === "todo").length;
+  const inProgressTasks = tasks.filter((task: { status: string }) => task.status === "in-progress").length;
+  const doneTasks = tasks.filter((task: { status: string }) => task.status === "done").length;
 
   // Data for the progress chart
   const progressData = {

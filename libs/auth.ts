@@ -12,6 +12,12 @@ declare module "next-auth" {
   }
 }
 
+type SessionUser = {
+  id: string;
+  name?: string;
+  email: string;
+};
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -43,34 +49,23 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.user = {
           id: user.id,
-          name: user.name ?? undefined,
-          email: user.email ?? "",
+          name: user.name,
+          email: user.email,
         };
+        // Generate short-lived access token
         token.accessToken = jwt.sign(
           { userId: user.id },
           process.env.JWT_SECRET!,
-          { expiresIn: "7h" }
+          { expiresIn: "1h" }
         );
       }
       return token;
     },
     async session({ session, token }) {
-      session.user = token.user as { id: string; email: string; name?: string | null | undefined };
+      session.user = token.user as SessionUser;
       session.accessToken = token.accessToken as string;
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  useSecureCookies: process.env.NODE_ENV === "production",
-  cookies: {
-    sessionToken: {
-      name: `${process.env.NODE_ENV === "production" ? "__Secure-" : ""}next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
 };
