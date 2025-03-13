@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
+import { signIn } from "next-auth/react";
+import {
   Button,
   TextField,
   Typography,
@@ -12,10 +13,11 @@ import {
   Grow,
   InputAdornment,
   CircularProgress,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import PersonIcon from "@mui/icons-material/Person"; // For name field
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { styled } from "@mui/material/styles";
@@ -38,38 +40,58 @@ interface AuthFormProps {
 export default function AuthForm({ type }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState(""); // Added for signup
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
     setLoading(true);
     setError("");
 
     try {
       if (type === "signup") {
-        const res = await fetch("/api/signup", {
+        const res = await fetch("/api/auth/signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, password, name }),
         });
 
+        const data = await res.json();
         if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error);
+          throw new Error(data.error || "Signup failed");
         }
 
-        router.push("/login");
-      } else {
-        const res = await fetch("/api/auth/callback/credentials", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+        // Auto-sign in after signup
+        const signInResponse = await signIn("credentials", {
+          email,
+          password,
+          redirect: false, // Handle redirect manually
         });
 
-        if (!res.ok) throw new Error("Login failed");
-        router.push("/");
+        if (signInResponse?.ok) {
+          router.push("/"); // Redirect to tasks page after successful signup and login
+        } else {
+          throw new Error(
+              signInResponse?.error === "CredentialsSignin"
+              ? "Signup succeeded, but login failed due to invalid credentials"
+              : signInResponse?.error || "Login failed after signup"
+          );
+        }
+      } else {
+        // Login
+        const res = await signIn("credentials", {
+          email,
+          password,
+          redirect: false, // Handle redirect manually
+        });
+
+        if (!res?.ok) {
+          throw new Error(res?.error || "Login failed");
+        }
+        router.push("/"); // Redirect to tasks page after login
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -78,7 +100,6 @@ export default function AuthForm({ type }: AuthFormProps) {
     }
   };
 
-  // Toggle password visibility
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   return (
@@ -114,7 +135,25 @@ export default function AuthForm({ type }: AuthFormProps) {
           </Box>
 
           <Grow in timeout={1000}>
-            <Box component="form" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+            <Box component="form" onSubmit={handleSubmit}>
+               {type === "signup" && (
+                <TextField
+                  label="Name"
+                  fullWidth
+                  margin="normal"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: "#fff" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={textFieldStyles}
+                />
+              )}
+
               <TextField
                 label="Email"
                 fullWidth
@@ -130,10 +169,10 @@ export default function AuthForm({ type }: AuthFormProps) {
                 }}
                 sx={textFieldStyles}
               />
-              
+
               <TextField
                 label="Password"
-                type={showPassword ? "text" : "password"} // Toggle password visibility
+                type={showPassword ? "text" : "password"}
                 fullWidth
                 margin="normal"
                 value={password}
@@ -152,7 +191,7 @@ export default function AuthForm({ type }: AuthFormProps) {
                         edge="end"
                         sx={{ color: "#fff" }}
                       >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {showPassword ? <Visibility /> : <VisibilityOff /> }
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -181,7 +220,13 @@ export default function AuthForm({ type }: AuthFormProps) {
                   fontWeight: 700,
                 }}
               >
-                {loading ? <CircularProgress size={24} /> : type === "login" ? "Log In" : "Sign Up"}
+                {loading ? (
+                  <CircularProgress size={24} />
+                ) : type === "login" ? (
+                  "Log In"
+                ) : (
+                  "Sign Up"
+                )}
               </Button>
 
               <Button
@@ -193,8 +238,8 @@ export default function AuthForm({ type }: AuthFormProps) {
                 }}
                 onClick={() => router.push(type === "login" ? "/signup" : "/login")}
               >
-                {type === "login" 
-                  ? "New Here? Sign Up" 
+                {type === "login"
+                  ? "New Here? Sign Up"
                   : "Already have an account? Log In"}
               </Button>
             </Box>

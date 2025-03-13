@@ -1,9 +1,9 @@
+
 // app/api/signup/route.ts
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/libs/prisma";
 
-// Define the expected request body type
 interface SignupRequest {
   email: string;
   password: string;
@@ -12,7 +12,18 @@ interface SignupRequest {
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name }: SignupRequest = await request.json();
+    // Parse request body safely
+    let body: SignupRequest;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body. Please provide valid JSON." },
+        { status: 400 }
+      );
+    }
+
+    const { email, password, name } = body;
 
     // Validate input
     if (!email || !password || !name) {
@@ -49,12 +60,14 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message: "User created successfully",
-        user: { id: user.id.toString(), email: user.email, name: user.name }, // Convert id to string for consistency with NextAuth
+        user: { id: user.id.toString(), email: user.email, name: user.name },
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Signup error:", error);
+    // Ensure error is always loggable
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Signup error:", errorMessage, error instanceof Error ? error.stack : "");
     return NextResponse.json(
       { error: "An error occurred while signing up" },
       { status: 500 }

@@ -2,15 +2,33 @@
 "use client";
 import { useTasks } from "@/hooks/useTasks";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import TaskProgress from "./components/TaskProgress";
 import { Box, Typography, Grid, Card, CardContent, CircularProgress } from "@mui/material";
 
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { data: tasks, isLoading, isError } = useTasks();
+  const router = useRouter();
+
+  // Redirect to login if unauthenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!session) {
-    return <Typography>Please log in to view the dashboard.</Typography>;
+    return null; // Prevent rendering until redirect kicks in
   }
 
   if (isLoading) {
@@ -25,7 +43,6 @@ export default function Dashboard() {
     return <Typography>Error loading tasks.</Typography>;
   }
 
-  // Handle empty tasks
   if (!tasks || tasks.length === 0) {
     return (
       <Box sx={{ p: 3 }}>
@@ -37,13 +54,11 @@ export default function Dashboard() {
     );
   }
 
-  // Calculate task statistics
   const totalTasks = tasks.length;
   const todoTasks = tasks.filter((task: { status: string }) => task.status === "todo").length;
   const inProgressTasks = tasks.filter((task: { status: string }) => task.status === "in-progress").length;
   const doneTasks = tasks.filter((task: { status: string }) => task.status === "done").length;
 
-  // Data for the progress chart
   const progressData = {
     todo: todoTasks,
     inProgress: inProgressTasks,

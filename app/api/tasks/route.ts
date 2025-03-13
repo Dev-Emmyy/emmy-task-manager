@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/libs/prisma";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/libs/auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 // GET: Fetch all tasks for the authenticated user
 export async function GET() {
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       data: {
         title,
         description,
-        userId: session.user.id, // The creator of the task
+        userId: Number(session.user.id), // The creator of the task
         assignedUserId: assignedUserId || session.user.id, // Assign to self if no user is provided
       },
     });
@@ -94,8 +94,7 @@ export async function DELETE(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    
     const body = await req.json();
     const { taskId } = body;
 
