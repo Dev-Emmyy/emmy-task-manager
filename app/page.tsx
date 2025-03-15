@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Box, Typography, Grid } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import Sidebar from "./components/Sidebar";
 import TaskOverview from "./components/TaskOverview";
 import CalendarView from "./components/CalendarView";
 import CommentsOverview from "./components/CommentsOverview";
@@ -36,48 +37,32 @@ export default function Dashboard() {
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%)",
-        p: 2,
-      }}
-    >
+        backgroundColor: "#F8F8F8",
+      }}>
       <Box sx={{ display: "flex" }}>
         {/* Sidebar */}
-        <Box
-          sx={{
-            width: 200,
-            bgcolor: "#2c2c2c",
-            height: "100vh",
-            p: 2,
-            color: "#fff",
-          }}
-        >
-          <Typography>Dashboard</Typography>
-          <Typography>Tasks overview</Typography>
-          <Typography>New Tasks</Typography>
-          <Typography>Report</Typography>
-          <Typography>Settings</Typography>
-        </Box>
+        <Sidebar/>
 
         {/* Main Content */}
         <Box sx={{ flexGrow: 1, p: 2 }}>
-          <Typography variant="h4" sx={{ color: "#fff", fontFamily: "Poppins", mb: 2 }}>
+          <Typography variant="h4" sx={{ color: "#0a0a0a", fontFamily: "Poppins", mb: 2 }}>
             Welcome, {session.user?.name || "User"}!
           </Typography>
-          <Typography sx={{ color: "#bbb", fontFamily: "Space Grotesk", mb: 3 }}>
+          <Typography sx={{ color: "#171717", fontFamily: "Space Grotesk", mb: 3 }}>
             Here is your agenda for today
           </Typography>
 
           <Grid container spacing={2}>
             {/* Calendar */}
             <Grid item xs={12} md={6}>
-              <GlassBox sx={{ height: 300 }}>
+              <GlassBox sx={{ height: 400, backgroundColor: "#fff", }}>
                 <CalendarView />
               </GlassBox>
             </Grid>
 
             {/* Urgent Tasks */}
             <Grid item xs={12} md={6}>
-              <GlassBox sx={{ height: 300 }}>
+              <GlassBox sx={{ height: 400 }}>
                 <UrgentTasks />
               </GlassBox>
             </Grid>

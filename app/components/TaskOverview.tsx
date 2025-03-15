@@ -1,30 +1,42 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { Task } from "../../types/task";
 
 export default function TaskOverview() {
-  const projects = [
-    "Market Research 2024",
-    "New Proposals",
-    "Brand Sprints",
-    "Customer Experience Q3",
-    "Market Research 2024",
-  ];
+  const router = useRouter();
+
+  const { data: tasks = [] } = useQuery<Task[]>({
+    queryKey: ["tasks"],
+    queryFn: () => fetch("/api/tasks").then((res) => res.json()),
+  });
 
   return (
     <Box>
       <Typography sx={{ color: "#fff", fontFamily: "Poppins", mb: 1 }}>
-        Project Directory
+        Task Overview
       </Typography>
-      {projects.map((project, index) => (
+      {tasks.map((task) => (
         <Typography
-          key={index}
-          sx={{ color: "#bbb", fontFamily: "Inter", mb: 0.5 }}
+          key={task.id}
+          sx={{
+            color: "#bbb",
+            fontFamily: "Inter",
+            mb: 0.5,
+            cursor: "pointer",
+            "&:hover": { color: "#6200ea" },
+          }}
+          onClick={() => router.push(`/new-task?id=${task.id}`)}
         >
-          • {project}
+          • {task.title}
         </Typography>
       ))}
-      <Typography sx={{ color: "#6200ea", fontFamily: "Inter" }}>
-        + Add more
-      </Typography>
+      <Button
+        onClick={() => router.push("/new-task")}
+        sx={{ color: "#6200ea", fontFamily: "Inter" }}
+      >
+        + Add New Task
+      </Button>
     </Box>
   );
 }

@@ -1,0 +1,231 @@
+"use client";
+
+import { useState } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Chip,
+} from "@mui/material";
+import {Task} from "../../types/task";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { PriorityHigh, KeyboardArrowUp, KeyboardArrowDown } from "@mui/icons-material";
+
+interface TaskFormProps {
+  task?: Task; // Task data for editing (optional)
+}
+
+export default function TaskForm({ task }: TaskFormProps) {
+  const [title, setTitle] = useState(task?.title || "");
+  const [assignee, setAssignee] = useState(task?.assignee || "");
+  const [status, setStatus] = useState(task?.status || "Not Started");
+  const [project, setProject] = useState(task?.project || "");
+  const [dueDate, setDueDate] = useState<Date | null>(task?.dueDate ? new Date(task.dueDate) : null);
+  const [priority, setPriority] = useState(task?.priority || "Low");
+  const [description, setDescription] = useState(task?.description || "");
+  const [subtasks, setSubtasks] = useState<string[]>(task?.subtasks || []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission (e.g., save or update task)
+    console.log({ title, assignee, status, project, dueDate, priority, description, subtasks });
+  };
+
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        ml: 2,
+        p: 3,
+        backgroundColor: "#2c2c2c",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+      }}
+    >
+      <Typography variant="h5" sx={{ color: "#fff", mb: 3 }}>
+        {task ? "Edit Task" : "New Task"}
+      </Typography>
+
+      <form onSubmit={handleSubmit}>
+        {/* Task Title */}
+        <TextField
+          fullWidth
+          label="Task Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          sx={{ mb: 3, backgroundColor: "#1a1a1a", borderRadius: "4px" }}
+          InputProps={{
+            style: { color: "#fff" },
+          }}
+          InputLabelProps={{
+            style: { color: "#fff" },
+          }}
+        />
+
+        {/* Assignee, Status, Project, Due Date */}
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <FormControl fullWidth sx={{ backgroundColor: "#1a1a1a", borderRadius: "4px" }}>
+            <InputLabel sx={{ color: "#fff" }}>Assignee</InputLabel>
+            <Select
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+              sx={{ color: "#fff" }}
+            >
+              <MenuItem value="John Doe">John Doe</MenuItem>
+              <MenuItem value="Jane Smith">Jane Smith</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth sx={{ backgroundColor: "#1a1a1a", borderRadius: "4px" }}>
+            <InputLabel sx={{ color: "#fff" }}>Status</InputLabel>
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              sx={{ color: "#fff" }}
+            >
+              <MenuItem value="Not Started">Not Started</MenuItem>
+              <MenuItem value="In Progress">In Progress</MenuItem>
+              <MenuItem value="Completed">Completed</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <FormControl fullWidth sx={{ backgroundColor: "#1a1a1a", borderRadius: "4px" }}>
+            <InputLabel sx={{ color: "#fff" }}>Project</InputLabel>
+            <Select
+              value={project}
+              onChange={(e) => setProject(e.target.value)}
+              sx={{ color: "#fff" }}
+            >
+              <MenuItem value="Project A">Project A</MenuItem>
+              <MenuItem value="Project B">Project B</MenuItem>
+            </Select>
+          </FormControl>
+
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <DatePicker
+              label="Due Date"
+              value={dueDate}
+              onChange={(newValue) => setDueDate(newValue)}
+              sx={{ backgroundColor: "#1a1a1a", borderRadius: "4px", width: "100%" }}
+              slotProps={{
+                textField: {
+                  sx: { color: "#fff" },
+                  InputLabelProps: { sx: { color: "#fff" } },
+                },
+              }}
+            />
+          </LocalizationProvider>
+        </Box>
+
+        {/* Priority */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ color: "#fff", mb: 1 }}>
+            Priority
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Chip
+              label="Low"
+              icon={<KeyboardArrowDown />} // Low Priority
+              onClick={() => setPriority("Low")}
+              sx={{
+                backgroundColor: priority === "Low" ? "#6200ea" : "#1a1a1a",
+                color: "#fff",
+              }}
+            />
+            <Chip
+              label="Medium"
+              icon={<KeyboardArrowUp />} // Medium Priority
+              onClick={() => setPriority("Medium")}
+              sx={{
+                backgroundColor: priority === "Medium" ? "#6200ea" : "#1a1a1a",
+                color: "#fff",
+              }}
+            />
+            <Chip
+              label="High"
+              icon={<PriorityHigh />} // High Priority
+              onClick={() => setPriority("High")}
+              sx={{
+                backgroundColor: priority === "High" ? "#6200ea" : "#1a1a1a",
+                color: "#fff",
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Description */}
+        <TextField
+          fullWidth
+          label="Description"
+          multiline
+          rows={4}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          sx={{ mb: 3, backgroundColor: "#1a1a1a", borderRadius: "4px" }}
+          InputProps={{
+            style: { color: "#fff" },
+          }}
+          InputLabelProps={{
+            style: { color: "#fff" },
+          }}
+        />
+
+        {/* Subtasks */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ color: "#fff", mb: 1 }}>
+            Subtasks
+          </Typography>
+          {subtasks.map((subtask, index) => (
+            <Box key={index} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+              <TextField
+                fullWidth
+                value={subtask}
+                onChange={(e) => {
+                  const newSubtasks = [...subtasks];
+                  newSubtasks[index] = e.target.value;
+                  setSubtasks(newSubtasks);
+                }}
+                sx={{ backgroundColor: "#1a1a1a", borderRadius: "4px" }}
+                InputProps={{
+                  style: { color: "#fff" },
+                }}
+              />
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: "#6200ea", color: "#fff" }}
+                onClick={() => setSubtasks(subtasks.filter((_, i) => i !== index))}
+              >
+                Remove
+              </Button>
+            </Box>
+          ))}
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: "#6200ea", color: "#fff", mt: 1 }}
+            onClick={() => setSubtasks([...subtasks, ""])}
+          >
+            Add Subtask
+          </Button>
+        </Box>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{ backgroundColor: "#6200ea", color: "#fff", width: "100%" }}
+        >
+          {task ? "Update Task" : "Create Task"}
+        </Button>
+      </form>
+    </Box>
+  );
+}

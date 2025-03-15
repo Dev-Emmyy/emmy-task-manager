@@ -7,14 +7,22 @@
   --font-poppins: 'Poppins', sans-serif;
   --font-inter: 'Inter', sans-serif;
   --font-space-grotesk: 'Space Grotesk', sans-serif;
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 body {
   font-family: var(--font-inter);
-  margin: 0;
-  padding: 0;
-  background-color: #1a1a1a;
-  color: #fff;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: #fff;
+  color: #000;
 }
 
 h1,
@@ -36,7 +44,7 @@ button {
 .subtitle {
   font-family: var(--font-space-grotesk);
   font-weight: 500;
-  color: #bbb;
+  color: #000;
 }
 
 
