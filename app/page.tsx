@@ -44,7 +44,7 @@ export default function Dashboard() {
         <Sidebar/>
 
         {/* Main Content */}
-        <Box sx={{ flexGrow: 1, p: 2 }}>
+        <Box sx={{ flexGrow: 1, p: 3, ml:4, mt:4 }}>
           <Typography variant="h4" sx={{ color: "#0a0a0a", fontFamily: "Poppins", mb: 2 }}>
             Welcome, {session.user?.name || "User"}!
           </Typography>
@@ -52,17 +52,20 @@ export default function Dashboard() {
             Here is your agenda for today
           </Typography>
 
-          <Grid container spacing={2}>
+          <Grid container spacing={3}>
             {/* Calendar */}
-            <Grid item xs={12} md={6}>
-              <GlassBox sx={{ height: 400, backgroundColor: "#fff", }}>
+            <Grid item xs={12} md={4.5}>
                 <CalendarView />
-              </GlassBox>
             </Grid>
 
             {/* Urgent Tasks */}
-            <Grid item xs={12} md={6}>
-              <GlassBox sx={{ height: 400 }}>
+            <Grid item xs={12} md={5}>
+              <GlassBox sx={{ 
+                minWidth: "650px",
+                maxWidth: "650px",
+                minHeight: "280px",
+                maxHeight: "320px",
+              }}>
                 <UrgentTasks />
               </GlassBox>
             </Grid>

@@ -4,39 +4,43 @@ import { styled } from "@mui/material/styles";
 import { format } from "date-fns";
 
 const GlassCalendar = styled(Box)({
-  background: " rgb(237, 237, 237, 0.05)",
+  background: "rgba(237, 237, 237, 0.05)",
   backdropFilter: "blur(10px)",
-  borderRadius: "16px",
-  boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+  borderRadius: "12px",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
   border: "1px solid rgba(255, 255, 255, 0.1)",
-  padding: "16px",
+  padding: "12px",
+  minWidth: "400px",
+  maxWidth: "400px",
+  minHeight: "280px",
+  maxHeight: "320px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
 });
 
 export default function CalendarView() {
-  const [currentDate, setCurrentDate] = useState(new Date()); // March 15, 2025
-  const today = new Date(); // Current date for highlighting
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const today = new Date();
 
-  // Get the days in the current month
-  const daysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const daysInMonth = (date) =>
+    new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = (date) =>
+    new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
-  // Get the first day of the month
-  const firstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-
-  // Generate the calendar grid
   const generateCalendar = () => {
     const totalDays = daysInMonth(currentDate);
     const firstDay = firstDayOfMonth(currentDate);
     const calendar = [];
 
-    // Fill the first row with empty cells
     for (let i = 0; i < firstDay; i++) {
       calendar.push(<td key={`empty-${i}`} />);
     }
 
-    // Fill the calendar with days
     for (let day = 1; day <= totalDays; day++) {
       const dateKey = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
       const isToday = dateKey.toDateString() === today.toDateString();
+
       calendar.push(
         <td
           key={day}
@@ -53,9 +57,9 @@ export default function CalendarView() {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              width: "24px",
-              height: "24px",
-              backgroundColor: isToday ? "#6200ea" : "transparent",
+              width: "20px",
+              height: "20px",
+              backgroundColor: isToday ? "orange" : "transparent",
               borderRadius: "50%",
               zIndex: 0,
               transition: "all 0.2s",
@@ -68,7 +72,7 @@ export default function CalendarView() {
             sx={{
               color: isToday ? "#171717" : "#0a0a0a",
               fontFamily: "Inter",
-              fontSize: "14px",
+              fontSize: "12px",
               position: "relative",
               zIndex: 1,
               "&:hover": { color: "#171717" },
@@ -80,7 +84,6 @@ export default function CalendarView() {
       );
     }
 
-    // Split into weeks
     const weeks = [];
     for (let i = 0; i < calendar.length; i += 7) {
       weeks.push(<tr key={`week-${i}`}>{calendar.slice(i, i + 7)}</tr>);
@@ -88,12 +91,10 @@ export default function CalendarView() {
     return weeks;
   };
 
-  // Switch to previous month
   const handlePreviousMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
-  // Switch to next month
   const handleNextMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
@@ -104,18 +105,18 @@ export default function CalendarView() {
         sx={{
           color: "#171717",
           fontFamily: "Poppins",
-          fontSize: "18px",
+          fontSize: "16px",
           fontWeight: "bold",
-          mb: 2,
+          mb: 1,
         }}
       >
         {format(currentDate, "MMMM yyyy")}
       </Typography>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Button onClick={handlePreviousMonth} sx={{ color: "#171717" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", mb: 1 }}>
+        <Button onClick={handlePreviousMonth} sx={{ color: "#171717", fontSize: "12px" }}>
           {"<"}
         </Button>
-        <Button onClick={handleNextMonth} sx={{ color: "#171717" }}>
+        <Button onClick={handleNextMonth} sx={{ color: "#171717", fontSize: "12px" }}>
           {">"}
         </Button>
       </Box>
@@ -124,8 +125,8 @@ export default function CalendarView() {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            color: "#171717",
-            minWidth: "280px", // Ensures consistent width for 31 days
+            minWidth: "250px",
+            maxWidth: "320px",
           }}
         >
           <thead>
@@ -134,11 +135,11 @@ export default function CalendarView() {
                 <th
                   key={day}
                   style={{
-                    padding: "8px",
+                    padding: "4px",
                     textAlign: "center",
                     fontFamily: "Inter",
-                    fontSize: "12px",
-                    width: "40px", // Fixed width for each column
+                    fontSize: "10px",
+                    width: "30px",
                   }}
                 >
                   {day}

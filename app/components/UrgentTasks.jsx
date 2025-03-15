@@ -8,8 +8,8 @@ export default function UrgentTasks() {
   ];
 
   return (
-    <Box>
-      <Typography sx={{ color: "#fff", fontFamily: "Poppins", mb: 1 }}>
+    <Box >
+      <Typography sx={{ color: "#171717", fontFamily: "Poppins", mb: 1 }}>
         Urgent Tasks
       </Typography>
       {urgentTasks.map((task, index) => (
@@ -23,7 +23,7 @@ export default function UrgentTasks() {
               mr: 1,
             }}
           />
-          <Typography sx={{ color: "#bbb", fontFamily: "Inter" }}>
+          <Typography sx={{ color: "#0a0a0a", fontFamily: "Inter" }}>
             {task.name} • {task.due}
           </Typography>
         </Box>

@@ -47,7 +47,7 @@ export default function NewTaskPage() {
   }
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#121212" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f9f9f9",}}>
       <Sidebar />
       <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", p: 4 }}>
         <TaskForm  task={task} />
