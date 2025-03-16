@@ -4,7 +4,7 @@ import { styled } from "@mui/material/styles";
 import { format } from "date-fns";
 
 const GlassCalendar = styled(Box)({
-  background: "rgba(237, 237, 237, 0.05)",
+  background: "#fff",
   backdropFilter: "blur(10px)",
   borderRadius: "12px",
   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
@@ -23,9 +23,9 @@ export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const today = new Date();
 
-  const daysInMonth = (date) =>
+  const daysInMonth = (date: Date) =>
     new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  const firstDayOfMonth = (date) =>
+  const firstDayOfMonth = (date: Date) =>
     new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
   const generateCalendar = () => {

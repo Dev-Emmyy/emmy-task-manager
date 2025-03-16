@@ -5,10 +5,6 @@ import {
   Typography,
   TextField,
   Button,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
   Chip,
   IconButton,
 } from "@mui/material";
@@ -17,13 +13,19 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { Close, Warning, ArrowUpward, ArrowDownward } from "@mui/icons-material";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 interface TaskFormProps {
-  task?: Task; // Optional: editing an existing task
-  onClose?: () => void; // If you want a close button to dismiss the form
+  task?: Task;
+  onClose?: () => void;
 }
 
 export default function TaskForm({ task, onClose }: TaskFormProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
   const [assignee, setAssignee] = useState(task?.assignee || "");
   const [project, setProject] = useState(task?.project || "");
   const [dueDate, setDueDate] = useState<Date | null>(
@@ -32,29 +34,59 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   const [priority, setPriority] = useState(task?.priority || "Low");
   const [description, setDescription] = useState(task?.description || "");
   const [subtasks, setSubtasks] = useState<string[]>(task?.subtasks || []);
-  const [comments, setComments] = useState<string>(""); // If you want a comments field
+  const [comments, setComments] = useState<string[]>(task?.comments || []);
+  const [newComment, setNewComment] = useState("");
+
+  const createTaskMutation = useMutation({
+    mutationFn: (newTask: Task) =>
+      fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTask),
+      }).then((res) => {
+        if (!res.ok) throw new Error("Failed to create task");
+        return res.json();
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      if (onClose) onClose();
+      router.push("/");
+    },
+    onError: (error: Error) => {
+      console.error("Error creating task:", error.message);
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log({
+    const newTask: Task = {
+      id: task?.id || Date.now().toString(),
+      title: project || "Unnamed Task",
       assignee,
+      status: "Not Started",
       project,
-      dueDate,
+      dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : "",
       priority,
       description,
       subtasks,
       comments,
-    });
+    };
+    createTaskMutation.mutate(newTask);
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      setComments((prev) => [...prev, newComment]);
+      setNewComment("");
+    }
   };
 
   return (
     <Box
-      // Outer container to center the card
       sx={{
         width: "100%",
         minHeight: "100vh",
-        bgcolor: "#f9f9f9", // Light background
+        background: "rgba(255, 255, 255, 0.05)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -62,74 +94,58 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
       }}
     >
       <Box
-        // The form card itself
         sx={{
           width: "480px",
-          bgcolor: "#fff",
-          borderRadius: 2,
-          boxShadow: 3,
+          background: "rgba(255, 255, 255, 0.05)",
+          backdropFilter: "blur(10px)",
+          borderRadius: "16px",
+          boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
           p: 3,
           position: "relative",
         }}
       >
-        {/* Close button (if you want a dismiss icon) */}
         {onClose && (
           <IconButton
             aria-label="close"
             onClick={onClose}
-            sx={{ position: "absolute", top: 16, right: 16 }}
+            sx={{ position: "absolute", top: 16, right: 16, color: "#6200ea" }}
           >
             <Close />
           </IconButton>
         )}
 
-        {/* Title */}
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-          New task #1
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontFamily: "Poppins", color: "#000" }}>
+          {task ? `Edit Task #${task.id}` : project || "Unnamed Task"}
         </Typography>
 
         <form onSubmit={handleSubmit}>
-          {/* Assignee */}
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Assignee</InputLabel>
-            <Select
-              value={assignee}
-              label="Assignee"
-              onChange={(e) => setAssignee(e.target.value)}
-            >
-              <MenuItem value="">Select Assignee</MenuItem>
-              <MenuItem value="You">You</MenuItem>
-              <MenuItem value="John">John</MenuItem>
-              <MenuItem value="Mary">Mary</MenuItem>
-            </Select>
-          </FormControl>
+          <TextField
+            label="Assignee"
+            fullWidth
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+            sx={{ mb: 2, "& .MuiInputBase-root": { color: "#000" }, "& .MuiInputLabel-root": { color: "#000" }, "& .MuiOutlinedInput-notchedOutline": { borderColor: "#6200ea" } }}
+          />
 
-          {/* Project */}
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Project</InputLabel>
-            <Select
-              value={project}
-              label="Project"
-              onChange={(e) => setProject(e.target.value)}
-            >
-              <MenuItem value="">Choose project #1</MenuItem>
-              <MenuItem value="Project A">Project A</MenuItem>
-              <MenuItem value="Project B">Project B</MenuItem>
-            </Select>
-          </FormControl>
+          <TextField
+            label="Project"
+            fullWidth
+            value={project}
+            onChange={(e) => setProject(e.target.value)}
+            sx={{ mb: 2, "& .MuiInputBase-root": { color: "#000" }, "& .MuiInputLabel-root": { color: "#000" }, "& .MuiOutlinedInput-notchedOutline": { borderColor: "#6200ea" } }}
+          />
 
-          {/* Due Date */}
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
               label="Due date"
               value={dueDate}
               onChange={(newValue) => setDueDate(newValue)}
-              sx={{ width: "100%", mb: 2 }}
+              sx={{ width: "100%", mb: 2, "& .MuiInputBase-root": { color: "#000" }, "& .MuiInputLabel-root": { color: "#000" }, "& .MuiOutlinedInput-notchedOutline": { borderColor: "#6200ea" } }}
             />
           </LocalizationProvider>
 
-          {/* Priority */}
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: "Poppins", color: "#000" }}>
             Priority
           </Typography>
           <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
@@ -137,26 +153,28 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
               label="Low"
               icon={<ArrowDownward />}
               onClick={() => setPriority("Low")}
-              color="success" // Green color for low
+              color="success"
               variant={priority === "Low" ? "filled" : "outlined"}
+              sx={{ "& .MuiChip-label": { color: priority === "Low" ? "#000" : "#000" } }}
             />
             <Chip
               label="Medium"
               icon={<ArrowUpward />}
               onClick={() => setPriority("Medium")}
-              color="warning" // Orange color for medium
+              color="warning"
               variant={priority === "Medium" ? "filled" : "outlined"}
+              sx={{ "& .MuiChip-label": { color: priority === "Medium" ? "#000" : "#000" } }}
             />
             <Chip
               label="High"
               icon={<Warning />}
               onClick={() => setPriority("High")}
-              color="error" // Red color for high
+              color="error"
               variant={priority === "High" ? "filled" : "outlined"}
+              sx={{ "& .MuiChip-label": { color: priority === "High" ? "#000" : "#000" } }}
             />
           </Box>
 
-          {/* Description */}
           <TextField
             label="Description"
             multiline
@@ -164,22 +182,14 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
             fullWidth
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            sx={{ mb: 3 }}
+            sx={{ mb: 3, "& .MuiInputBase-root": { color: "#000" }, "& .MuiInputLabel-root": { color: "#000" }, "& .MuiOutlinedInput-notchedOutline": { borderColor: "#6200ea" } }}
           />
 
-          {/* Subtasks */}
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: "Poppins", color: "#000" }}>
             Subtasks
           </Typography>
           {subtasks.map((subtask, index) => (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                gap: 1,
-                mb: 1,
-              }}
-            >
+            <Box key={index} sx={{ display: "flex", gap: 1, mb: 1 }}>
               <TextField
                 fullWidth
                 value={subtask}
@@ -188,13 +198,12 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
                   newSubtasks[index] = e.target.value;
                   setSubtasks(newSubtasks);
                 }}
+                sx={{ "& .MuiInputBase-root": { color: "#000" }, "& .MuiInputLabel-root": { color: "#000" }, "& .MuiOutlinedInput-notchedOutline": { borderColor: "#6200ea" } }}
               />
               <Button
                 variant="text"
                 color="error"
-                onClick={() =>
-                  setSubtasks(subtasks.filter((_, i) => i !== index))
-                }
+                onClick={() => setSubtasks(subtasks.filter((_, i) => i !== index))}
               >
                 Remove
               </Button>
@@ -203,32 +212,41 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
           <Button
             variant="text"
             onClick={() => setSubtasks([...subtasks, ""])}
-            sx={{ mb: 3 }}
+            sx={{ mb: 3, fontFamily: "Poppins", color: "#6200ea" }}
           >
             + Add a subtask
           </Button>
 
-          {/* Comments (if you want them, matching your screenshot’s mention) */}
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, fontFamily: "Poppins", color: "#000" }}>
             Comments
           </Typography>
-          <TextField
-            label="Comments"
-            multiline
-            rows={2}
-            fullWidth
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            sx={{ mb: 3 }}
-          />
+          <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+            <TextField
+              fullWidth
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment"
+              sx={{ "& .MuiInputBase-root": { color: "#000" }, "& .MuiInputLabel-root": { color: "#000" }, "& .MuiOutlinedInput-notchedOutline": { borderColor: "#6200ea" } }}
+            />
+            <Button
+              onClick={handleAddComment}
+              sx={{ bgcolor: "#6200ea", color: "#000", "&:hover": { bgcolor: "#7f39fb" } }}
+            >
+              Add
+            </Button>
+          </Box>
+          {comments.map((comment, index) => (
+            <Typography key={index} sx={{ color: "#000", mb: 1 }}>
+              {comment}
+            </Typography>
+          ))}
 
-          {/* Submit Button */}
           <Button
             type="submit"
             variant="contained"
-            sx={{ width: "100%", textTransform: "none" }}
+            sx={{ width: "100%", textTransform: "none", fontFamily: "Poppins", bgcolor: "#6200ea", "&:hover": { bgcolor: "#7f39fb" } }}
           >
-            Create Task
+            {task ? "Update Task" : "Create Task"}
           </Button>
         </form>
       </Box>

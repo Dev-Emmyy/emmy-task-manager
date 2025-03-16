@@ -60,21 +60,12 @@ export default function Dashboard() {
 
             {/* Urgent Tasks */}
             <Grid item xs={12} md={5}>
-              <GlassBox sx={{ 
-                minWidth: "650px",
-                maxWidth: "650px",
-                minHeight: "280px",
-                maxHeight: "320px",
-              }}>
                 <UrgentTasks />
-              </GlassBox>
             </Grid>
 
             {/* Project Directory (Task Overview) */}
             <Grid item xs={12} md={4}>
-              <GlassBox sx={{ height: 200 }}>
                 <TaskOverview />
-              </GlassBox>
             </Grid>
 
             {/* Comments Overview */}
