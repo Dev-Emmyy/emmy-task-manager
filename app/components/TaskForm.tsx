@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -13,19 +13,32 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { Close, Warning, ArrowUpward, ArrowDownward } from "@mui/icons-material";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 
 interface TaskFormProps {
-  task?: Task;
   onClose?: () => void;
 }
 
-export default function TaskForm({ task, onClose }: TaskFormProps) {
+export default function TaskForm({ onClose }: TaskFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const taskId = searchParams.get("id");
 
+  // Fetch task data if editing
+  const { data: task, isLoading: taskLoading, error: taskError } = useQuery<Task>({
+    queryKey: ["task", taskId],
+    queryFn: () =>
+      fetch(`/api/tasks/${taskId}`).then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch task");
+        return res.json();
+      }),
+    enabled: !!taskId,
+  });
+
+  // State for form fields
   const [assignee, setAssignee] = useState(task?.assignee || "");
   const [project, setProject] = useState(task?.project || "");
   const [dueDate, setDueDate] = useState<Date | null>(
@@ -36,6 +49,19 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
   const [subtasks, setSubtasks] = useState<string[]>(task?.subtasks || []);
   const [comments, setComments] = useState<string[]>(task?.comments || []);
   const [newComment, setNewComment] = useState("");
+
+  // Update form fields when task data is fetched
+  useEffect(() => {
+    if (task) {
+      setAssignee(task.assignee);
+      setProject(task.project);
+      setDueDate(task.dueDate ? new Date(task.dueDate) : null);
+      setPriority(task.priority);
+      setDescription(task.description);
+      setSubtasks(task.subtasks);
+      setComments(task.comments);
+    }
+  }, [task]);
 
   const createTaskMutation = useMutation({
     mutationFn: (newTask: Task) =>
@@ -57,13 +83,33 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
     },
   });
 
+  const updateTaskMutation = useMutation({
+    mutationFn: (updatedTask: Task) =>
+      fetch(`/api/tasks/${updatedTask.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedTask),
+      }).then((res) => {
+        if (!res.ok) throw new Error("Failed to update task");
+        return res.json();
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      if (onClose) onClose();
+      router.push("/");
+    },
+    onError: (error: Error) => {
+      console.error("Error updating task:", error.message);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newTask: Task = {
+    const taskData: Task = {
       id: task?.id || Date.now().toString(),
       title: project || "Unnamed Task",
       assignee,
-      status: "Not Started",
+      status: task?.status || "Not Started",
       project,
       dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : "",
       priority,
@@ -71,7 +117,12 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
       subtasks,
       comments,
     };
-    createTaskMutation.mutate(newTask);
+
+    if (taskId && task) {
+      updateTaskMutation.mutate(taskData);
+    } else {
+      createTaskMutation.mutate(taskData);
+    }
   };
 
   const handleAddComment = () => {
@@ -80,6 +131,24 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
       setNewComment("");
     }
   };
+
+  if (taskLoading && taskId) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Typography sx={{ color: "#000" }}>Loading task...</Typography>
+      </Box>
+    );
+  }
+
+  if (taskError) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Typography sx={{ color: "#d32f2f" }}>
+          Error: {(taskError as Error).message}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -109,14 +178,14 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
           <IconButton
             aria-label="close"
             onClick={onClose}
-            sx={{ position: "absolute", top: 16, right: 16, color: "#6200ea" }}
+            sx={{ position: "absolute", top: "16px", right: "16px", color: "#6200ea" }}
           >
             <Close />
           </IconButton>
         )}
 
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, fontFamily: "Poppins", color: "#000" }}>
-          {task ? `Edit Task #${task.id}` : project || "Unnamed Task"}
+          {taskId && task ? `${task.title}` : project || "Unnamed Task"}
         </Typography>
 
         <form onSubmit={handleSubmit}>
@@ -246,7 +315,7 @@ export default function TaskForm({ task, onClose }: TaskFormProps) {
             variant="contained"
             sx={{ width: "100%", textTransform: "none", fontFamily: "Poppins", bgcolor: "#6200ea", "&:hover": { bgcolor: "#7f39fb" } }}
           >
-            {task ? "Update Task" : "Create Task"}
+            {taskId && task ? "Update Task" : "Create Task"}
           </Button>
         </form>
       </Box>

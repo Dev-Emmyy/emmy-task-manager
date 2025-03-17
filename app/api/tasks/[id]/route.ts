@@ -1,39 +1,37 @@
 import { NextResponse } from "next/server";
 import { Task } from "../../../../types/task";
-import { tasks } from "../route"; 
+import { tasks } from "../../../../libs/tasks";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const task = tasks.find((t: Task) => t.id === params.id);
+// GET /api/tasks/[id] - Fetch a single task by ID
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const taskId = params.id;
+
+  // Find the task in the tasks array
+  const task = tasks.find((t: Task) => t.id === taskId);
+
   if (!task) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
-  return NextResponse.json(task);
+
+  return NextResponse.json(task, { status: 200 });
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const body = await request.json();
-  const taskIndex = tasks.findIndex((t: Task) => t.id === params.id);
+// PUT /api/tasks/[id] - Update a task by ID
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const taskId = params.id;
+
+  // Find the task in the tasks array
+  const taskIndex = tasks.findIndex((t: Task) => t.id === taskId);
+
   if (taskIndex === -1) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
-  tasks[taskIndex] = { ...tasks[taskIndex], ...body, id: params.id };
-  return NextResponse.json(tasks[taskIndex]);
-}
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const taskIndex = tasks.findIndex((t: Task) => t.id === params.id);
-  if (taskIndex === -1) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
-  }
-  const deletedTask = tasks.splice(taskIndex, 1)[0];
-  return NextResponse.json(deletedTask);
+  // Parse the updated task data from the request body
+  const updatedTask: Task = await request.json();
+
+  // Update the task in the tasks array
+  tasks[taskIndex] = { ...tasks[taskIndex], ...updatedTask };
+
+  return NextResponse.json({ message: "Task updated", task: tasks[taskIndex] }, { status: 200 });
 }
